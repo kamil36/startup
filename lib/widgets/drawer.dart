@@ -55,7 +55,6 @@ class MyDrawer extends StatelessWidget {
                 title: const Text('LogOut'),
                 onTap: () async {
                   await FirebaseAuth.instance.signOut();
-                  Navigator.pushNamed(context, "/login");
                 },
               ),
             ),

@@ -5,6 +5,7 @@ import 'package:start_up/firebase_options.dart';
 import 'package:start_up/models/imagelist.dart';
 import 'package:start_up/pages/cart.dart';
 import 'package:start_up/pages/home.dart';
+import 'package:start_up/signup_login/auth_page.dart';
 import 'package:start_up/signup_login/login.dart';
 import 'package:start_up/signup_login/signup.dart';
 
@@ -32,12 +33,13 @@ class MyApp extends StatelessWidget {
             colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
             useMaterial3: true,
           ),
-          initialRoute: '/login',
+          initialRoute: '/home',
           routes: {
             '/home': (context) => Home(),
             '/login': (context) => LoginMain(),
             '/cart': (context) => CartPage(),
             '/signup': (context) => SignUpPage(),
+            '/auth': (context) => AuthPage(),
           }),
     );
   }

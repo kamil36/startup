@@ -1,5 +1,8 @@
+// ignore_for_file: unused_local_variable
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:start_up/auth/auth_services.dart';
 
 
 class SignUpPage extends StatefulWidget {
@@ -9,16 +12,67 @@ class SignUpPage extends StatefulWidget {
   State<SignUpPage> createState() => _SignUpPageState();
 }
 
-final GlobalKey<FormState> _SignupformKey = GlobalKey<FormState>();
 
-String email = '';
-String password = '';
-String firstname = '';
-String lastname = '';
-
-bool login = false;
 
 class _SignUpPageState extends State<SignUpPage> {
+  bool isLoading = false;
+
+
+final GlobalKey<FormState> _SignupformKey = GlobalKey<FormState>();
+
+TextEditingController firstnameController= TextEditingController();
+TextEditingController lastnameController= TextEditingController();
+TextEditingController emailController= TextEditingController();
+TextEditingController passwordController= TextEditingController();
+
+
+createUserWithEmailAndPassword(context)async{
+  try {
+    setState(() {
+    isLoading=true;
+  });
+  final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+    email: emailController.text.trim(),
+    password: passwordController.text.trim(),
+    
+  );await FirebaseFirestore.instance.collection('users').add({
+      'firstname': firstnameController,
+      'lastname': lastnameController,
+      'email': emailController,
+      'password': passwordController,
+    });
+
+  setState(() {
+    isLoading=false;
+  });
+  
+} on FirebaseAuthException catch (e) {
+    setState(() {
+    isLoading=false;
+  });
+  if (e.code == 'weak-password') {
+     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      duration: Duration(seconds: 1),
+  showCloseIcon: true,
+  content: Text("The password provided is too weak.")));
+  } else if (e.code == 'email-already-in-use') {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      duration: Duration(seconds: 1),
+  showCloseIcon: true,
+  content: Text("The account already exists for that email.")));
+  }
+} catch (e) {
+  setState(() {
+    isLoading=false;
+  });
+   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      duration: Duration(seconds: 1),
+  showCloseIcon: true,
+  content: Text("Error:$e")));
+}
+}
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,9 +96,8 @@ class _SignUpPageState extends State<SignUpPage> {
                         SizedBox(
                           height: 50,
                         ),
-                        login
-                            ? Container()
-                            : TextFormField(
+                       
+                             TextFormField(
                                 key: ValueKey('firstname'),
                                 decoration: InputDecoration(
                                   hintText: 'Enter First Name',
@@ -59,11 +112,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                     return null;
                                   }
                                 },
-                                onSaved: (value) {
-                                  setState(() {
-                                    firstname = value!;
-                                  });
-                                },
+                               
                               ),
                         SizedBox(
                           height: 20,
@@ -82,11 +131,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               return null;
                             }
                           },
-                          onSaved: (value) {
-                            setState(() {
-                              lastname = value!;
-                            });
-                          },
+                          
                         ),
                         SizedBox(
                           height: 20,
@@ -105,11 +150,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               return null;
                             }
                           },
-                          onSaved: (value) {
-                            setState(() {
-                              email = value!;
-                            });
-                          },
+                        
                         ),
                         SizedBox(
                           height: 20,
@@ -129,59 +170,27 @@ class _SignUpPageState extends State<SignUpPage> {
                               return null;
                             }
                           },
-                          onSaved: (value) {
-                            setState(() {
-                              password = value!;
-                            });
-                          },
+                        
                         ),
                         SizedBox(
                           height: 10,
                         ),
-                        // Row(
-                        //   mainAxisAlignment: MainAxisAlignment.center,
-                        //   children: [
-                        //     Text(
-                        //       "Already member?",
-                        //       style: TextStyle(
-                        //         fontWeight: FontWeight.w500,
-                        //         fontSize: 18,
-                        //       ),
-                        //     ),
-                        //     TextButton(
-                        //       onPressed: () {
-                        //         Navigator.pushNamed(context, "/login");
-                        //       },
-                        //       child: Text(
-                        //         "Log In",
-                        //         style: TextStyle(
-                        //             fontWeight: FontWeight.bold,
-                        //             fontSize: 22,
-                        //             color: Colors.blueAccent),
-                        //       ),
-                        //     ),
-                        //   ],
-                        // ),
+                    
                         SizedBox(
                           height: 50,
                         ),
                         InkWell(
-                          onTap: () async {
-                            if (_SignupformKey.currentState!.validate()) {
-                              _SignupformKey.currentState!.save();
-                              login
-                                  ? AuthServices.signinUser(
-                                      email, password, context)
-                                  : AuthServices.signupUser(email, password,
-                                      firstname, lastname, context);
-                            }
-                          },
+                         onTap: (){
+                    if(_SignupformKey.currentState!.validate()){
+                      createUserWithEmailAndPassword(context);
+                    }
+                  },
                           child: Container(
                             height: 60,
                             width: 250,
                             color: Colors.black,
                             child: Center(
-                              child: Text(
+                              child: isLoading?Center(child: CircularProgressIndicator()): Text(
                                 "Sign Up",
                                 style: TextStyle(
                                     color: Colors.white, fontSize: 25),

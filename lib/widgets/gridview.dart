@@ -11,7 +11,6 @@ class MyGridView extends StatelessWidget {
     return Container(
       height: double.infinity,
       child: GridView.builder(
-        physics: NeverScrollableScrollPhysics(),
         shrinkWrap: true,
         itemCount: product.length,
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(

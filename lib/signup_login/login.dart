@@ -1,15 +1,59 @@
+
+// ignore_for_file: unused_local_variable
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:start_up/auth/auth_services.dart';
 import 'package:start_up/signup_login/signup.dart';
 
 class LoginMain extends StatefulWidget {
+  const LoginMain({super.key});
+
   @override
   State<LoginMain> createState() => _LoginMainState();
 }
 
-final GlobalKey<FormState> _loginformKey = GlobalKey<FormState>();
-
 class _LoginMainState extends State<LoginMain> {
+  final GlobalKey<FormState> _loginformKey = GlobalKey<FormState>();
+
+bool isLoading = false;
+
+TextEditingController emailController= TextEditingController();
+TextEditingController passwordController= TextEditingController();
+ @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+  Future<void> signInWithEmailAndPassword(context)async{
+  try {
+  setState(() {
+    isLoading=true;
+  });
+  final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+    email: emailController.text.trim(),
+    password: passwordController.text.trim(),
+  );
+  setState(() {
+    isLoading=false;
+  });
+} on FirebaseAuthException catch (e) {
+  setState(() {
+    isLoading=false;
+  });
+  if (e.code == 'user-not-found') {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      duration: Duration(seconds: 1),
+  showCloseIcon: true,
+  content: Text("No user found for that email.")));
+  } else if (e.code == 'wrong-password') {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      duration: Duration(seconds: 1),
+  showCloseIcon: true,
+  content: Text("Wrong password provided for that user.")));
+  }
+}
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,7 +80,6 @@ class _LoginMainState extends State<LoginMain> {
 
                 
                 child: TextFormField(
-                  key: ValueKey('email'),
                   decoration: InputDecoration(
                       hintText: 'Enter Email',
                       contentPadding: EdgeInsets.only(top: 10, left: 10),
@@ -51,11 +94,7 @@ class _LoginMainState extends State<LoginMain> {
                       return null;
                     }
                   },
-                  onSaved: (value) {
-                    setState(() {
-                      email = value!;
-                    });
-                  },
+                
                 ),
               ),
               SizedBox(
@@ -65,7 +104,6 @@ class _LoginMainState extends State<LoginMain> {
                 height: 50,
                 width: 350,
                 child: TextFormField(
-                  key: ValueKey('password'),
                   obscureText: true,
                   decoration: InputDecoration(
                       hintText: 'Enter Password',
@@ -81,27 +119,19 @@ class _LoginMainState extends State<LoginMain> {
                       return null;
                     }
                   },
-                  onSaved: (value) {
-                    setState(() {
-                      password = value!;
-                    });
-                  },
+                
                 ),
               ),
               SizedBox(
                 height: 20,
               ),
               ElevatedButton(
-                  onPressed: () {
-                    if (_loginformKey.currentState!.validate()) {
-                      _loginformKey.currentState!.save();
-                      login
-                          ? AuthServices.signinUser(email, password, context)
-                          : AuthServices.signupUser(
-                              email, password, firstname, lastname, context);
+                  onPressed: (){
+                    if(_loginformKey.currentState!.validate()){
+                      signInWithEmailAndPassword( context);
                     }
                   },
-                  child: Text(
+                  child:isLoading? Center(child: CircularProgressIndicator()): Text(
                     "Login",
                     style: TextStyle(color: Colors.white, fontSize: 20),
                   ),
@@ -180,3 +210,4 @@ class _LoginMainState extends State<LoginMain> {
     );
   }
 }
+
